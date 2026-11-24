@@ -102,7 +102,7 @@ def test_hinge_stays_closed_while_walking():
 
 
 def test_cad_and_sim_agree():
-    """Las medidas del soporte en la simulación son las de arm/cad/params.scad."""
+    """Las medidas del soporte en la simulación son las de cad/params.scad."""
     import re
     import shutil
     import subprocess

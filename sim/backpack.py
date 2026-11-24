@@ -4,7 +4,7 @@
   ~2 cm a 1.8 pasos/s, se balancea de lado, gira un poco la cadera).
 - El morral + soporte es un cuerpo libre "soldado" (weld) al usuario: así el brazo recibe las
   aceleraciones reales del caminar (no se teletransporta).
-- El soporte es el de arm/cad: placa en la espalda, tubo 20x20, y una cabeza con bisagra que se
+- El soporte es el de cad/: placa en la espalda, tubo 20x20, y una cabeza con bisagra que se
   dobla hacia atrás si el brazo se engancha (imanes: ~7 N·m cerrada, casi nada al abrirse).
 - La IMU va en la base del brazo, después de la bisagra (como un BNO055 en la bandeja).
 - En la vereda hay personas paradas (con cara color piel, que el detector busca).
@@ -29,7 +29,7 @@ HEAD = np.array([0.02, 0.0, 0.2])  # centro de la cabeza del usuario
 HEAD_R = 0.10
 STEP_HZ = 1.8  # pasos por segundo
 WALK_SPEED = 1.2  # m/s
-# Del soporte en arm/cad/params.scad (mm -> m), relativos a la base del brazo:
+# Del soporte en cad/params.scad (mm -> m), relativos a la base del brazo:
 HINGE_REL = np.array([-0.0489, 0.0, -0.0314])   # eje de la bisagra (HINGE - ARM_BASE)
 TUBE_FROM = np.array([-0.054, 0.160, -0.060])   # FOOT_AT - ARM_BASE
 TUBE_TO = np.array([-0.054, 0.035, -0.045])     # HEAD_AT - ARM_BASE

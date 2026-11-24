@@ -27,7 +27,7 @@ dibujar a mano en la pieza original (nervios), sin soportes y sin perder lo edit
 
 ## Supuestos y límites
 
-- **Cargas** (de la simulación del morral, `arm/sim/demo_walk.py`, con 1.5 de margen): caminar
+- **Cargas** (de la simulación del morral, `sim/demo_walk.py`, con 1.5 de margen): caminar
   sosteniendo 500 g (24 N a 206 mm adelante de la base del brazo), lo mismo con empuje lateral a
   cada lado, la rama (20 N hacia atrás en la pinza: lo máximo antes de que cedan los imanes) y los
   imanes a punto de ceder (100 N contra el pasador). Detalle en `problems.py`.

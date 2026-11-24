@@ -1,7 +1,7 @@
 """Escena de la mesa: brazo SO-101 + mesa + objetos + una "persona" que se mueve.
 
 El modelo del brazo es el oficial de MuJoCo Menagerie (robotstudio_so101, Apache 2.0). No se
-copia al repo: se descarga una vez en arm/third_party/ con una versión fija (MENAGERIE_COMMIT).
+copia al repo: se descarga una vez en third_party/ con una versión fija (MENAGERIE_COMMIT).
 
 Ejes: x = adelante del brazo, y = izquierda, z = arriba. La base del brazo está en (0, 0, 0)
 sobre la mesa.

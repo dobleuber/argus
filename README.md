@@ -1,10 +1,13 @@
-# Brazo con cámara (SO-101): simulación en la mesa y en el morral
+# Argus
+
+Brazo SO-101 con cámara que **ve, reacciona y sostiene cosas**: en la mesa y en el morral, sobre
+el hombro. Como el gigante de cien ojos, mira a su alrededor mientras caminas.
+
+## Brazo con cámara (SO-101): simulación en la mesa y en el morral
 
 Un brazo **SO-101** (6 servos Feetech STS3215, proyecto LeRobot) con cámara en la muñeca que
 **ve, reacciona y sostiene cosas**. Simulado primero en la mesa y después en el morral, sobre el
 hombro, mientras la persona camina.
-
-> Proyecto independiente de Pip-Boy Otto; vive en esta carpeta solo de forma temporal.
 
 El modelo del brazo es el oficial de [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/main/robotstudio_so101)
 (Apache 2.0). No está copiado en el repo: se descarga solo la primera vez, en `third_party/`.
@@ -144,7 +147,7 @@ altura del hombro (1.62 m), la bisagra no alcanza: el brazo doblado sigue en el 
 ## Uso
 
 ```bash
-cd arm/sim
+cd sim
 pip install mujoco numpy pillow imageio imageio-ffmpeg pytest
 python demo_track.py                       # buscar / saludar / seguir (imprime resultados)
 python demo_track.py --video seguir.mp4    # con video

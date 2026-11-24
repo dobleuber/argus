@@ -10,7 +10,7 @@ pasador son paralelos y todos los agujeros importantes van a lo largo de Z. La p
 comparación (baselines/cabeza_fija.stl) es la misma cabeza_fija con el tubo horizontal
 (head_fixed_level.scad).
 
-Cargas (de la simulación del morral, arm/sim/demo_walk.py), con 1.5 de margen:
+Cargas (de la simulación del morral, sim/demo_walk.py), con 1.5 de margen:
   - caminar sosteniendo 500 g: el soporte recibe ~16 N y ~3.3 N·m -> 24 N hacia abajo, a 206 mm
     adelante de la base del brazo (3.3 / 16) y 100 mm arriba (centro de masa del brazo);
   - lo mismo con un empuje de costado de la mitad, a cada lado (el vaivén de la marcha);
@@ -21,7 +21,7 @@ Cargas (de la simulación del morral, arm/sim/demo_walk.py), con 1.5 de margen:
 """
 from genpart import Problem, RemoteLoad, box, zcyl
 
-# Medidas (de arm/cad/params.scad y mounts.scad, pasadas a este marco)
+# Medidas (de cad/params.scad y mounts.scad, pasadas a este marco)
 LUG_Z = (14.4, 55.6)          # nudillo central (fijo) de la bisagra, r = 11
 KR = 11.0
 SUPPORT_X = (14.0, 105.0)     # apoyo bajo la placa móvil
