@@ -1,6 +1,6 @@
-"""Pruebas de la simulación del brazo en la mesa. Correr con: MUJOCO_GL=osmesa python -m pytest -q
+"""Tests of the arm simulation (desk and backpack). Run with: MUJOCO_GL=osmesa python -m pytest -q
 
-(La primera vez descarga el modelo del SO-101 de MuJoCo Menagerie.)
+(The first time, it downloads the SO-101 model from MuJoCo Menagerie.)
 """
 
 import mujoco
@@ -13,10 +13,10 @@ from control import REST, Arm, detect_face
 
 def test_scene_builds_with_arm_table_objects_person():
     m = scene.build()
-    assert m.nu == 6  # 5 articulaciones + pinza
+    assert m.nu == 6  # 5 joints + gripper
     for name in ("cube", "ball", "can", "person", "table"):
         assert mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, name) >= 0 or name == "table"
-    assert abs(m.body_subtreemass[m.body("base").id] - 0.645) < 0.02  # brazo ~645 g
+    assert abs(m.body_subtreemass[m.body("base").id] - 0.645) < 0.02  # arm ~645 g
 
 
 def test_rest_pose_camera_upright_and_sees_face():
@@ -25,7 +25,7 @@ def test_rest_pose_camera_upright_and_sees_face():
     arm = Arm(m, d)
     arm.set_pose(REST)
     _, Rc = arm.cam_frame()
-    assert Rc[2, 1] > 0.8  # el "arriba" de la imagen apunta hacia arriba
+    assert Rc[2, 1] > 0.8  # the "up" of the image points upwards
     r = mujoco.Renderer(m, 120, 160)
     r.update_scene(d, camera="wrist_cam")
     hit = detect_face(r.render())
@@ -37,10 +37,10 @@ def test_tracks_person_and_greets_twice():
 
     out = demo_track.run()
     states = out["states"]
-    greetings = sum(1 for i, s in enumerate(states) if s == "saludar" and (i == 0 or states[i - 1] != "saludar"))
-    assert greetings == 2  # al empezar y cuando la persona vuelve
+    greetings = sum(1 for i, s in enumerate(states) if s == "greet" and (i == 0 or states[i - 1] != "greet"))
+    assert greetings == 2  # at the start and when the person comes back
     assert out["track_err_median_deg"] < 5
-    assert out["max_torque"] < scene.STALL_TORQUE["7.4V"]  # alcanza con los servos de 7.4 V
+    assert out["max_torque"] < scene.STALL_TORQUE["7.4V"]  # the 7.4 V servos are enough
 
 
 @pytest.mark.parametrize("volts,mass", [("7.4V", 0.03), ("7.4V", 0.3), ("12V", 0.6)])
@@ -52,7 +52,7 @@ def test_grasps_holds_and_places_back(volts, mass):
     assert np.all(out["hold_torque"] < scene.STALL_TORQUE[volts])
 
 
-# ----------------------------------------------------------------------------- morral
+# ----------------------------------------------------------------------------- backpack
 def test_backpack_rest_pose_keeps_distance_from_head():
     import backpack as bp
     import demo_walk as dw
@@ -70,7 +70,7 @@ def test_looks_at_people_while_walking():
     out = dw.run_look(imu=True, predict=True)
     assert out["greetings"] >= 2
     assert out["err_median"] < 5 and out["err_p90"] < 12
-    assert out["min_head"] > dw.SAFE_DIST - 0.01  # nunca entra a la zona de la cabeza
+    assert out["min_head"] > dw.SAFE_DIST - 0.01  # never enters the head zone
     assert out["max_torque"] < scene.STALL_TORQUE["7.4V"]
 
 
@@ -84,14 +84,14 @@ def test_holds_box_while_walking(mass):
 
 
 def test_fold_hinge_protects_arm_from_branch():
-    """Rama a 1.74 m: con la bisagra el brazo se dobla y recibe mucho menos golpe que rígido."""
+    """Branch at 1.74 m: with the hinge the arm folds and takes a much smaller hit than when rigid."""
     import demo_walk as dw
 
     hinge = dw.run_snag(rigid=False, height=1.74)
     rigid = dw.run_snag(rigid=True, height=1.74)
-    assert hinge["max_fold_deg"] > 60  # se dobló hacia atrás
+    assert hinge["max_fold_deg"] > 60  # folded backwards
     assert hinge["max_crush"] < rigid["max_crush"] / 2
-    assert hinge["min_head"] > 0.09  # al doblarse se aleja de la cabeza
+    assert hinge["min_head"] > 0.09  # folding moves it away from the head
 
 
 def test_hinge_stays_closed_while_walking():
@@ -102,7 +102,7 @@ def test_hinge_stays_closed_while_walking():
 
 
 def test_cad_and_sim_agree():
-    """Las medidas del soporte en la simulación son las de cad/params.scad."""
+    """The mount dimensions in the simulation are the ones in cad/params.scad."""
     import re
     import shutil
     import subprocess
@@ -111,7 +111,7 @@ def test_cad_and_sim_agree():
     import backpack as bp
 
     if shutil.which("openscad") is None:
-        pytest.skip("OpenSCAD no instalado")
+        pytest.skip("OpenSCAD not installed")
     cad = Path(__file__).resolve().parent.parent / "cad"
     import tempfile
 

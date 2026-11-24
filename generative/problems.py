@@ -1,106 +1,106 @@
-"""Diseño generativo de la cabeza fija del soporte del morral (prueba).
+"""Generative design of the fixed head of the backpack mount (trial).
 
-Marco de la pieza (mm, N): X = adelante del usuario, desde el eje de la bisagra; Y = hacia ABAJO,
-desde la cara de apoyo de la placa móvil (Y < 0 es donde se mueve la parte móvil); Z = hacia la
-izquierda del usuario, desde la cara exterior del lado derecho. Z = 0 es la cama de impresión.
-El eje de la bisagra (pasador M8) y el tubo de aluminio corren a lo largo de Z.
+Part frame (mm, N): X = forward of the wearer, from the hinge axis; Y = DOWNWARDS, from the
+bearing face of the moving plate (Y < 0 is where the moving part moves); Z = towards the
+wearer's left, from the outer face on the right side. Z = 0 is the print bed.
+The hinge axis (M8 pin) and the aluminium tube run along Z.
 
-Para la prueba el tubo es horizontal (en el diseño sube 15 mm en 125 mm, ~7°): así el tubo y el
-pasador son paralelos y todos los agujeros importantes van a lo largo de Z. La pieza original de
-comparación (baselines/cabeza_fija.stl) es la misma cabeza_fija con el tubo horizontal
+For the trial the tube is horizontal (in the design it rises 15 mm over 125 mm, ~7°): that way the
+tube and the pin are parallel and all the important holes run along Z. The original part used for
+comparison (baselines/head_fixed.stl) is the same head_fixed with the tube horizontal
 (head_fixed_level.scad).
 
-Cargas (de la simulación del morral, sim/demo_walk.py), con 1.5 de margen:
-  - caminar sosteniendo 500 g: el soporte recibe ~16 N y ~3.3 N·m -> 24 N hacia abajo, a 206 mm
-    adelante de la base del brazo (3.3 / 16) y 100 mm arriba (centro de masa del brazo);
-  - lo mismo con un empuje de costado de la mitad, a cada lado (el vaivén de la marcha);
-  - la rama: la pinza empujada hacia atrás con 20 N (lo máximo antes de que cedan los imanes:
-    7 N·m / 0.35 m), más el peso del brazo;
-  - los imanes a punto de ceder: tiran de la cara de apoyo hacia arriba con ~100 N (7 N·m a ~70 mm
-    de la bisagra) y el pasador empuja hacia abajo lo mismo.
+Loads (from the backpack simulation, sim/demo_walk.py), with a 1.5 margin:
+  - walking while holding 500 g: the mount takes ~16 N and ~3.3 N·m -> 24 N downwards, 206 mm
+    in front of the arm base (3.3 / 16) and 100 mm up (centre of mass of the arm);
+  - the same with a sideways push of half that, to each side (the sway of the gait);
+  - the branch: the gripper pushed backwards with 20 N (the most before the magnets give way:
+    7 N·m / 0.35 m), plus the weight of the arm;
+  - the magnets about to give way: they pull the bearing face up with ~100 N (7 N·m at ~70 mm
+    from the hinge) and the pin pushes down by the same amount.
 """
 from genpart import Problem, RemoteLoad, box, zcyl
 
-# Medidas (de cad/params.scad y mounts.scad, pasadas a este marco)
-LUG_Z = (14.4, 55.6)          # nudillo central (fijo) de la bisagra, r = 11
+# Dimensions (from cad/params.scad and mounts.scad, converted to this frame)
+LUG_Z = (14.4, 55.6)          # central (fixed) knuckle of the hinge, r = 11
 KR = 11.0
-SUPPORT_X = (14.0, 105.0)     # apoyo bajo la placa móvil
+SUPPORT_X = (14.0, 105.0)     # support under the moving plate
 SUPPORT_Z = (0.0, 70.0)
-MAGNETS = [(55.0, 9.0), (85.0, 9.0), (55.0, 61.0), (85.0, 61.0)]   # (X, Z), huecos de 10.3 x 5.2 desde Y = 0
-RX_BOLTS = [(40.0, 6.0), (40.0, 64.0), (95.0, 6.0), (95.0, 64.0)]  # rebajes para los tornillos del receptor
-TUBE = (-5.1, 28.6)           # centro del tubo (X, Y)
-SOCKET_Z = (62.0, 107.0)      # el tubo entra hasta Z = 70; el encastre va de 62 a 107
-CROSS_Z = (74.0, 95.0)        # pasadores M5 a través del encastre (a lo largo de Y)
+MAGNETS = [(55.0, 9.0), (85.0, 9.0), (55.0, 61.0), (85.0, 61.0)]   # (X, Z), 10.3 x 5.2 pockets from Y = 0
+RX_BOLTS = [(40.0, 6.0), (40.0, 64.0), (95.0, 6.0), (95.0, 64.0)]  # recesses for the receiver bolts
+TUBE = (-5.1, 28.6)           # tube centre (X, Y)
+SOCKET_Z = (62.0, 107.0)      # the tube goes in up to Z = 70; the socket runs from 62 to 107
+CROSS_Z = (74.0, 95.0)        # M5 cross bolts through the socket (along Y)
 
-# Puntos de aplicación (marco de la pieza)
-ARM_LOAD_POINT = (255.0, -131.0, 35.0)     # 206 mm adelante de la base del brazo, 100 mm arriba
-BRANCH_POINT = (305.0, -351.0, 35.0)       # la pinza, a 1.77 m de altura
+# Points of application (part frame)
+ARM_LOAD_POINT = (255.0, -131.0, 35.0)     # 206 mm in front of the arm base, 100 mm up
+BRANCH_POINT = (305.0, -351.0, 35.0)       # the gripper, 1.77 m above the ground
 
 
-def cabeza_fija():
+def head_fixed():
     lug = zcyl(0, 0, KR, LUG_Z[0], LUG_Z[1])
-    skin = box(SUPPORT_X[0], SUPPORT_X[1], 0, 3, SUPPORT_Z[0], SUPPORT_Z[1])   # cara de apoyo plana
-    # Las cargas del brazo entran por la bisagra y por la cara de apoyo; cada una partida en dos
-    # mitades (en Z) para que puedan tomar giros
+    skin = box(SUPPORT_X[0], SUPPORT_X[1], 0, 3, SUPPORT_Z[0], SUPPORT_Z[1])   # flat bearing face
+    # The arm loads enter through the hinge and through the bearing face; each split into two
+    # halves (in Z) so that they can carry moments
     mid = 35.0
     arm_patches = [zcyl(0, 0, KR, LUG_Z[0], mid), zcyl(0, 0, KR, mid, LUG_Z[1]),
                    box(SUPPORT_X[0], SUPPORT_X[1], 0, 3, SUPPORT_Z[0], mid),
                    box(SUPPORT_X[0], SUPPORT_X[1], 0, 3, mid, SUPPORT_Z[1])]
-    bosses = [box(x - 8, x + 8, 0, 8, z - 8, z + 8) for x, z in MAGNETS]      # alrededor de los imanes
+    bosses = [box(x - 8, x + 8, 0, 8, z - 8, z + 8) for x, z in MAGNETS]      # around the magnets
     tx, ty = TUBE
     socket = box(tx - 15, tx + 15, ty - 15, ty + 15, SOCKET_Z[0], SOCKET_Z[1])
     return Problem(
-        name="cabeza_fija",
-        # Lugar: hasta 1 cm más atrás que la original y 1.2 cm más abajo; adelante lo limita el hombro
+        name="head_fixed",
+        # Space: up to 1 cm further back than the original and 1.2 cm lower; the shoulder limits it at the front
         bounds=(-30, 105, -11, 55, 0, 107),
         keepout=[
-            # Encima de la cara de apoyo se mueve la parte móvil (y se dobla hacia atrás): todo libre,
-            # salvo el nudillo central (que entra en el hueco de la placa móvil, radio 12)
+            # Above the bearing face the moving part moves (and folds backwards): all free,
+            # except the central knuckle (which fits into the gap in the moving plate, radius 12)
             box(-99, 99, -99, 0, -99, LUG_Z[0] - 0.2),
             box(-99, 99, -99, 0, LUG_Z[1] + 0.2, 99),
             box(8.5, 99, -99, 0, LUG_Z[0] - 1, LUG_Z[1] + 1),
             box(-99, -8.5, -99, 0, LUG_Z[0] - 1, LUG_Z[1] + 1),
             box(-99, 99, -99, -8.5, LUG_Z[0] - 1, LUG_Z[1] + 1),
-            # Nudillos móviles a los lados del fijo (giran: cilindro completo de radio 12.5)
+            # Moving knuckles on either side of the fixed one (they rotate: full cylinder of radius 12.5)
             zcyl(0, 0, 12.5, -99, LUG_Z[0] - 0.2),
             zcyl(0, 0, 12.5, LUG_Z[1] + 0.2, 99),
-            # El tubo de aluminio (20 x 20 + holgura), desde Z = 70 hacia el pie
+            # The aluminium tube (20 x 20 + clearance), from Z = 70 towards the foot
             box(tx - 10.4, tx + 10.4, ty - 10.4, ty + 10.4, SOCKET_Z[0], 99),
-            # Cabezas y tuercas de los pasadores M5 del encastre (arriba y abajo) y la llave
+            # Heads and nuts of the socket M5 cross bolts (top and bottom) and the wrench
             *[box(tx - 6, tx + 6, -99, ty - 15, z - 6, z + 6) for z in CROSS_Z],
             *[box(tx - 6, tx + 6, ty + 15, 99, z - 6, z + 6) for z in CROSS_Z],
-            # Rebajes para las cabezas de los tornillos del receptor (en la placa móvil)
+            # Recesses for the receiver bolt heads (in the moving plate)
             *[box(x - 6, x + 6, -1, 4.5, z - 6, z + 6) for x, z in RX_BOLTS],
         ],
         preserve=[lug, skin, *bosses, socket],
         holes=[
-            zcyl(0, 0, 4.2, -99, 99),                                                  # pasador M8
-            *[box(x - 5.2, x + 5.2, -1, 5.2, z - 5.2, z + 5.2) for x, z in MAGNETS],   # imanes 10 x 5
-            *[box(tx - 2.7, tx + 2.7, -99, 99, z - 2.7, z + 2.7) for z in CROSS_Z],    # pasadores M5
+            zcyl(0, 0, 4.2, -99, 99),                                                  # M8 pin
+            *[box(x - 5.2, x + 5.2, -1, 5.2, z - 5.2, z + 5.2) for x, z in MAGNETS],   # 10 x 5 magnets
+            *[box(tx - 2.7, tx + 2.7, -99, 99, z - 2.7, z + 2.7) for z in CROSS_Z],    # M5 cross bolts
         ],
-        support=[box(tx - 15, tx + 15, ty - 15, ty + 15, 75, 107)],   # el tubo la sostiene
+        support=[box(tx - 15, tx + 15, ty - 15, ty + 15, 75, 107)],   # the tube holds it
         cases={
-            "caminar con 500 g": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, 0))],
-            "caminar, empuje a la izquierda": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, 12))],
-            "caminar, empuje a la derecha": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, -12))],
-            "rama (hacia atrás)": [RemoteLoad(arm_patches, BRANCH_POINT, (-20, 10, 0))],
-            "imanes a punto de ceder": [RemoteLoad(bosses, (70, 0, 35), (0, -100, 0)),
+            "walk with 500 g": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, 0))],
+            "walk, push to the left": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, 12))],
+            "walk, push to the right": [RemoteLoad(arm_patches, ARM_LOAD_POINT, (0, 24, -12))],
+            "branch (backwards)": [RemoteLoad(arm_patches, BRANCH_POINT, (-20, 10, 0))],
+            "magnets about to give way": [RemoteLoad(bosses, (70, 0, 35), (0, -100, 0)),
                                         RemoteLoad([lug], (0, 0, 35), (0, 100, 0))],
         },
-        # volfrac: intento 1 = 0.155 (la misma masa que la original); intento 2 = 0.125 (~20 % menos;
-        # menos de 0.12 no se puede: lo obligatorio ya ocupa 0.07)
+        # volfrac: attempt 1 = 0.155 (the same mass as the original); attempt 2 = 0.125 (~20 % less;
+        # below 0.12 is not possible: the preserved regions already take 0.07)
         round=2.0, voxel=3.0, volfrac=0.125, rmin=2.5, min_wall=1.2,
         youngs=2100.0, density=1.27e-3,   # PETG
-        baseline="baselines/cabeza_fija.stl",
+        baseline="baselines/head_fixed.stl",
     )
 
 
-def cabeza_fija_nervios():
-    """La original mejorada a mano con lo que mostró el diseño generativo (nervios bajo el apoyo y una
-    pared que los une con el encastre; apoyo de 6 mm). Mismo problema y mismas cargas: solo para
-    evaluarla contra la original (out/cabeza_fija_nervios.stl sale de head_fixed_level.scad)."""
+def head_fixed_ribs():
+    """The original improved by hand with what the generative design showed (ribs under the support
+    and a wall that ties them to the socket; 6 mm support). Same problem and same loads: only to
+    evaluate it against the original (out/head_fixed_ribs.stl comes from head_fixed_level.scad)."""
     from dataclasses import replace
-    return replace(cabeza_fija(), name="cabeza_fija_nervios")
+    return replace(head_fixed(), name="head_fixed_ribs")
 
 
-PROBLEMS = {"cabeza_fija": cabeza_fija, "cabeza_fija_nervios": cabeza_fija_nervios}
+PROBLEMS = {"head_fixed": head_fixed, "head_fixed_ribs": head_fixed_ribs}

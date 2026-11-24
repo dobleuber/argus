@@ -1,176 +1,176 @@
 # Argus
 
-Brazo SO-101 con cámara que **ve, reacciona y sostiene cosas**: en la mesa y en el morral, sobre
-el hombro. Como el gigante de cien ojos, mira a su alrededor mientras caminas.
+An SO-101 arm with a camera that **sees, reacts and holds things**: on the desk and on a backpack,
+over the shoulder. Like the hundred-eyed giant, it looks around while you walk.
 
-## Brazo con cámara (SO-101): simulación en la mesa y en el morral
+## Arm with a camera (SO-101): simulation on the desk and on the backpack
 
-Un brazo **SO-101** (6 servos Feetech STS3215, proyecto LeRobot) con cámara en la muñeca que
-**ve, reacciona y sostiene cosas**. Simulado primero en la mesa y después en el morral, sobre el
-hombro, mientras la persona camina.
+An **SO-101** arm (6 Feetech STS3215 servos, LeRobot project) with a wrist camera that
+**sees, reacts and holds things**. Simulated first on the desk and then on the backpack, over the
+shoulder, while the person walks.
 
-El modelo del brazo es el oficial de [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/main/robotstudio_so101)
-(Apache 2.0). No está copiado en el repo: se descarga solo la primera vez, en `third_party/`.
+The arm model is the official one from [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/main/robotstudio_so101)
+(Apache 2.0). It is not copied into the repo: it is downloaded automatically the first time, into `third_party/`.
 
-## Demo 1: buscar, saludar y seguir a una persona
+## Demo 1: search for, greet and track a person
 
-[Video](media/seguir_persona.mp4). El brazo **solo usa la imagen de su cámara** (un detector de
-piel simple, en lugar de un detector de caras) y sus propios ángulos, como el robot real:
+[Video](media/track_person.mp4). The arm **only uses the image from its camera** (a simple skin
+detector instead of a face detector) and its own joint angles, like the real robot:
 
-- **buscar:** gira de lado a lado hasta ver una cara;
-- **saludar:** asiente con la muñeca al encontrarla;
-- **seguir:** la mantiene en el centro de la imagen, con el horizonte nivelado.
+- **search:** turns from side to side until it sees a face;
+- **greet:** nods with the wrist when it finds one;
+- **track:** keeps it in the centre of the image, with the horizon level.
 
-La persona se mueve, se acerca, se levanta, se va de la habitación y vuelve por el otro lado.
+The person moves, comes closer, stands up, leaves the room and comes back from the other side.
 
-| Resultado | |
+| Result | |
 |---|---|
-| Error de mirada al seguir | mediana **2.7°**, p90 6.3° |
-| Saludos | 2 (al empezar y cuando vuelve) |
-| Torque máximo | **1.17 N·m** (alcanzan los servos de 7.4 V, límite 1.91 N·m) |
+| Gaze error while tracking | median **2.7°**, p90 6.3° |
+| Greetings | 2 (at the start and when the person comes back) |
+| Max torque | **1.17 N·m** (the 7.4 V servos are enough, limit 1.91 N·m) |
 
-## Demo 2: agarrar, mostrar, sostener y devolver
+## Demo 2: grasp, show, hold and put back
 
-[Video](media/agarrar_y_sostener.mp4). Secuencia programada con cinemática inversa: baja con la
-pinza vertical, agarra el cubo, se lo muestra a la persona (30 cm adelante, 24 cm de alto), lo
-sostiene 4 s y lo devuelve a la mesa.
+[Video](media/grasp_and_hold.mp4). A scripted sequence with inverse kinematics: it comes down with
+the gripper vertical, grasps the cube, shows it to the person (30 cm forward, 24 cm high), holds
+it for 4 s and puts it back on the desk.
 
-Cuánto peso aguanta en la pose de "mostrar" (torque del servo más cargado al sostener):
+How much weight it can take in the "show" pose (torque of the most loaded servo while holding):
 
-| Peso | Servos de 7.4 V (1.91 N·m) | Servos de 12 V (2.94 N·m) |
+| Mass | 7.4 V servos (1.91 N·m) | 12 V servos (2.94 N·m) |
 |---|---|---|
 | 30 g | 0.56 N·m ✔ | 0.56 N·m ✔ |
 | 100 g | 0.76 ✔ | 0.77 ✔ |
 | 200 g | 1.05 ✔ | 1.05 ✔ |
 | 300 g | 1.34 ✔ | 1.36 ✔ |
-| 400 g | 1.64 ✔ (86 %, al límite) | 1.67 ✔ |
-| 600 g | ✘ se le cae | 2.26 ✔ (77 %) |
+| 400 g | 1.64 ✔ (86 %, at the limit) | 1.67 ✔ |
+| 600 g | ✘ drops it | 2.26 ✔ (77 %) |
 
-Para sostener **un rato** conviene quedarse por debajo de ~50 % del torque máximo (los servos se
-calientan): **~150 g con 7.4 V** y **~300 g con 12 V** con el brazo así de estirado. Más cerca
-del cuerpo, aguanta bastante más.
+To hold something **for a while** it is better to stay below ~50 % of the max torque (the servos
+heat up): **~150 g at 7.4 V** and **~300 g at 12 V** with the arm stretched out like this. Closer
+to the body, it can take quite a bit more.
 
-## Demo 3: en el morral, sobre el hombro, caminando
+## Demo 3: on the backpack, over the shoulder, walking
 
-[Video mirando](media/morral_mirar.mp4) · [video sosteniendo](media/morral_sostener.mp4)
+[Looking video](media/backpack_look.mp4) · [holding video](media/backpack_hold.mp4)
 
-El brazo va en un soporte sobre el hombro derecho del morral. La persona camina por una vereda
-a 4.3 km/h con el vaivén real de la marcha (sube y baja ~2 cm a 1.8 pasos/s, se balancea y gira
-un poco). El morral está "soldado" al cuerpo con un resorte rígido, así que el brazo recibe las
-aceleraciones de verdad. Hay tres personas en la vereda.
+The arm sits on a mount over the right shoulder of the backpack. The person walks along a sidewalk
+at 4.3 km/h with the real sway of the gait (bobs up and down ~2 cm at 1.8 steps/s, sways and turns
+a little). The backpack is "welded" to the body with a stiff spring, so the arm receives the real
+accelerations. There are three people on the sidewalk.
 
-**Dónde va el soporte:** en el borde del hombro (26 cm al costado del centro de la cabeza), a
-la altura de los hombros. Más adentro, el brazo queda a menos de 10 cm de la cabeza.
+**Where the mount goes:** at the edge of the shoulder (26 cm to the side of the centre of the
+head), at shoulder height. Further in, the arm ends up less than 10 cm from the head.
 
-**Seguridad (siempre activa):** la base no gira hacia la cabeza, y si alguna parte del brazo
-queda a menos de 10 cm de ella, el brazo vuelve a la postura de reposo. En la prueba, lo más
-cerca que estuvo fueron 9.8 cm.
+**Safety (always on):** the base does not turn towards the head, and if any part of the arm comes
+within 10 cm of it, the arm goes back to the rest posture. In the test, the closest it came was
+9.8 cm.
 
-### Mirar a la gente mientras caminas
+### Looking at people while you walk
 
-| Error de mirada (mediana / p90) | Sin predicción | Con predicción |
+| Gaze error (median / p90) | No prediction | With prediction |
 |---|---|---|
-| Sin IMU | 9.3° / 22.6° | 3.5° / 14.5° |
-| **Con IMU** | 10.4° / 21.4° | **2.8° / 8.0°** |
+| No IMU | 9.3° / 22.6° | 3.5° / 14.5° |
+| **With IMU** | 10.4° / 21.4° | **2.8° / 8.0°** |
 
-- **IMU en el soporte** (BNO055): mide el vaivén y los servos lo compensan.
-- **Predicción:** con dos detecciones seguidas se estima hacia dónde se mueve la persona en la
-  imagen. Al pasar caminando junto a alguien, su dirección gira rápido (~0.7 rad/s) y sin esto
-  la mirada va atrasada.
-- Con las dos, caminando se mira casi tan bien como parado (2.8°). Torque máximo 1.38 N·m:
-  alcanzan los servos de 7.4 V.
+- **IMU on the mount** (BNO055): measures the sway and the servos compensate for it.
+- **Prediction:** from two consecutive detections it estimates where the person is moving in the
+  image. When walking past someone, their direction turns quickly (~0.7 rad/s) and without this
+  the gaze lags behind.
+- With both, it looks almost as well while walking as standing still (2.8°). Max torque 1.38 N·m:
+  the 7.4 V servos are enough.
 
-### Sostener algo mientras caminas
+### Holding something while you walk
 
-Una caja de 4 x 4 x 6 cm sostenida a la altura del pecho y la cara, 28 cm adelante del hombro,
-durante 17 s caminando. **Decisión:** el brazo nunca sostiene el celular (se puede caer o lo
-pueden robar); solo cosas livianas y sin valor, como una botella chica o una linterna.
+A 4 x 4 x 6 cm box held at chest and face height, 28 cm in front of the shoulder, for 17 s of
+walking. **Decision:** the arm never holds the phone (it could drop it or it could get stolen);
+only light things of no value, such as a small bottle or a flashlight.
 
-| Peso | Torque (servo más cargado) | Se deslizó | Fuerza / momento en el soporte |
+| Mass | Torque (most loaded servo) | Slipped | Force / moment on the mount |
 |---|---|---|---|
 | 50 g | 0.6 N·m | 3 mm | 9 N / 1.3 N·m |
 | 100 g | 0.76 | 3 mm | 10 N / 1.5 N·m |
 | 200 g | 1.08 | 5 mm | 11 N / 1.9 N·m |
 | 300 g | 1.40 | 6 mm | 13 N / 2.4 N·m |
 | 400 g | 1.73 | 7 mm | 14 N / 2.8 N·m |
-| 500 g | 1.91 con 7.4 V (al límite) · 2.06 con 12 V | 7–8 mm | 16 N / 3.3 N·m |
+| 500 g | 1.91 at 7.4 V (at the limit) · 2.06 at 12 V | 7–8 mm | 16 N / 3.3 N·m |
 
-- Para sostener un rato (menos de ~50 % del torque máximo): **~150 g con 7.4 V** y **~300 g con
-  12 V**.
-- La caja se sacude ~3.5 m/s² (un tercio de la gravedad) por el vaivén de la marcha.
-- **El soporte** tiene que aguantar ~16 N y ~3.3 N·m en el peor caso: con margen, diseñarlo para
+- To hold something for a while (less than ~50 % of the max torque): **~150 g at 7.4 V** and
+  **~300 g at 12 V**.
+- The box is shaken at ~3.5 m/s² (a third of gravity) by the sway of the gait.
+- **The mount** has to take ~16 N and ~3.3 N·m in the worst case: with margin, design it for
   **6–7 N·m**.
 
-## El soporte (mesa y morral)
+## The mount (desk and backpack)
 
-Diseño completo en **[cad/README.md](cad/README.md)**: piezas para imprimir, qué comprar y cómo
-se arma. La misma unión (bandeja con riel cola de milano de 38 mm + receptor con perilla) sirve
-en la mesa y en el morral: el brazo se cambia de uno a otro en segundos.
+Full design in **[cad/README.md](cad/README.md)**: parts to print, what to buy and how it goes
+together. The same joint (cradle with a 38 mm dovetail rail + receiver with a knob) works on the
+desk and on the backpack: the arm moves from one to the other in seconds.
 
 <p>
-<img src="media/soporte_morral.png" width="80%" alt="Soporte en el morral">
+<img src="media/mount_backpack.png" width="80%" alt="Mount on the backpack">
 </p>
 
-En el morral: placa rígida en el bolsillo de la laptop, tubo de aluminio sobre el hombro y una
-**bisagra con imanes** que deja doblar el brazo hacia atrás si se engancha (nunca hacia la
-cabeza). La simulación usa las mismas medidas que el CAD (hay una prueba que lo verifica).
+On the backpack: a rigid plate in the laptop pocket, an aluminium tube over the shoulder and a
+**hinge with magnets** that lets the arm fold backwards if it gets snagged (never towards the
+head). The simulation uses the same dimensions as the CAD (a test checks it).
 
-**Cabeza fija mejorada:** una [prueba de diseño generativo](generative/README.md) mostró que la
-plataforma de los imanes era floja; se le agregaron nervios a mano y ahora es **3 a 4 veces más
-rígida** (+~20 g), sin soportes extra al imprimir (detalle en [cad/README.md](cad/README.md)).
+**Improved fixed head:** a [generative-design trial](generative/README.md) showed that the magnet
+platform was flexible; ribs were added by hand and it is now **3 to 4 times stiffer** (+~20 g),
+with no extra supports when printing (details in [cad/README.md](cad/README.md)).
 
-**Enganche con una rama** a 1.74 m mientras caminas ([video](media/morral_rama.mp4)):
+**Snagging a branch** at 1.74 m while you walk ([video](media/backpack_branch.mp4)):
 
-| | Con bisagra | Soporte rígido |
+| | With hinge | Rigid mount |
 |---|---|---|
-| Golpe contra el brazo | **39 N** | 248 N |
-| Carga en el hombro del usuario | **106 N, 24 N·m** | 262 N, 58 N·m |
-| El brazo | se dobla 92° hacia atrás y queda así | lo dobla la rama, a la fuerza |
+| Hit on the arm | **39 N** | 248 N |
+| Load on the wearer's shoulder | **106 N, 24 N·m** | 262 N, 58 N·m |
+| The arm | folds 92° backwards and stays there | the branch bends it, by force |
 
-Con una rama a 1.78 m pasa algo parecido (57 N contra 190 N en el brazo). Si el golpe es a la
-altura del hombro (1.62 m), la bisagra no alcanza: el brazo doblado sigue en el camino.
+With a branch at 1.78 m something similar happens (57 N against 190 N on the arm). If the hit is
+at shoulder height (1.62 m), the hinge is not enough: the folded arm is still in the way.
 
-**Morral ajustado o flojo:** con las correas flojas, el error de la cámara en el p90 pasa de 8° a
-19°. El soporte no reemplaza a un buen ajuste: correa de pecho y cinturón.
+**Tight or loose backpack:** with the straps loose, the p90 camera error goes from 8° to 19°. The
+mount does not replace a good fit: chest strap and hip belt.
 
-## Lo que aprendimos al simular
+## What we learned from simulating
 
-- La cámara de muñeca va montada a ~30° de la pinza y del lado: la postura de reposo tiene que
-  dejarla derecha (giro de muñeca −90°) o la imagen sale de cabeza.
-- **Limitar la aceleración** de los servos (10 rad/s²) bajó el torque máximo de 2.94 a 1.17 N·m:
-  los picos venían de arranques bruscos, no del peso.
-- **La pinza no debe apretar con todo**: se limitó a ~0.8 N·m (~10 N de apriete). Con todo el
-  torque aplasta el objeto contra la palma y lo suelta.
-- Con la pinza vertical y en alto, la muñeca llega a su tope: conviene agarrar desde arriba y
-  mostrar el objeto de frente.
+- The wrist camera is mounted at ~30° from the gripper and off to the side: the rest posture has to
+  keep it upright (wrist roll −90°) or the image comes out upside down.
+- **Limiting the acceleration** of the servos (10 rad/s²) lowered the max torque from 2.94 to
+  1.17 N·m: the peaks came from abrupt starts, not from the weight.
+- **The gripper must not squeeze at full force**: it was limited to ~0.8 N·m (~10 N of grip). With
+  full torque it crushes the object against the palm and lets it go.
+- With the gripper vertical and up high, the wrist reaches its limit: it is better to grasp from
+  above and show the object facing forward.
 
-## Uso
+## Usage
 
 ```bash
 cd sim
 pip install -r ../requirements.txt
-python demo_track.py                       # buscar / saludar / seguir (imprime resultados)
-python demo_track.py --video seguir.mp4    # con video
-python demo_hold.py --mass 0.2 --volts 7.4V --video sostener.mp4
-python demo_walk.py                        # en el morral: mirar caminando (con y sin IMU)
-python demo_walk.py --hold                 # en el morral: sostener caminando (pesos y voltajes)
-python -m pytest -q                        # pruebas (13)
+python demo_track.py                       # search / greet / track (prints results)
+python demo_track.py --video track.mp4     # with video
+python demo_hold.py --mass 0.2 --volts 7.4V --video hold.mp4
+python demo_walk.py                        # on the backpack: look while walking (with and without IMU)
+python demo_walk.py --hold                 # on the backpack: hold while walking (masses and voltages)
+python -m pytest -q                        # tests (13)
 ```
 
-En un servidor sin pantalla, anteponer `MUJOCO_GL=osmesa` (o `egl`).
+On a headless server, prefix with `MUJOCO_GL=osmesa` (or `egl`).
 
-Archivos:
-- `sim/scene.py` — descarga el modelo, arma la mesa, objetos y la persona
-- `sim/control.py` — cinemática inversa, seguimiento con la cámara, detector
-- `sim/demo_track.py`, `sim/demo_hold.py` — los demos de la mesa
-- `sim/backpack.py` — escena del morral: usuario que camina, soporte, IMU, vereda con gente
-- `sim/demo_walk.py` — demos del morral (mirar y sostener caminando, seguridad)
-- `sim/test_arm.py` — pruebas
+Files:
+- `sim/scene.py` — downloads the model, builds the desk, objects and the person
+- `sim/control.py` — inverse kinematics, camera tracking, detector
+- `sim/demo_track.py`, `sim/demo_hold.py` — the desk demos
+- `sim/backpack.py` — backpack scene: walking wearer, mount, IMU, sidewalk with people
+- `sim/demo_walk.py` — backpack demos (look and hold while walking, safety)
+- `sim/test_arm.py` — tests
 
-## Próximos pasos
+## Next steps
 
-1. **Más realismo:** detector de caras real (p. ej. el de MediaPipe o un YOLO en la NPU de la
-   Orange Pi 5 Pro) sobre la imagen simulada, y agarrar objetos ubicados con la cámara.
-2. **Voz:** preguntas y respuestas con un modelo de visión y lenguaje usando la imagen de la cámara.
-3. **Imprimir las probetas del riel** y medir la base real del SO-101 antes de imprimir el resto.
-4. **Comprar** según **[COMPRAS.md](COMPRAS.md)**, por fases: mesa ~250 €, morral ~170 €, voz ~40 €.
+1. **More realism:** a real face detector (e.g. MediaPipe's, or a YOLO on the NPU of the
+   Orange Pi 5 Pro) on the simulated image, and grasping objects located with the camera.
+2. **Voice:** questions and answers with a vision-language model using the camera image.
+3. **Print the rail coupons** and measure the real SO-101 base before printing the rest.
+4. **Buy** according to **[BOM.md](BOM.md)**, in phases: desk ~250 €, backpack ~170 €, voice ~40 €.

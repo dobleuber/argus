@@ -1,12 +1,12 @@
-"""Demo 1: el brazo busca a una persona con su cámara, la saluda y la sigue con la mirada.
+"""Demo 1: the arm searches for a person with its camera, greets them and follows them with its gaze.
 
-Uso:
-  python demo_track.py                       # simula e imprime resultados
-  python demo_track.py --video track.mp4     # además graba video (vista externa + cámara)
-  MUJOCO_GL=osmesa python demo_track.py ...  # en un servidor sin pantalla
+Usage:
+  python demo_track.py                       # simulate and print results
+  python demo_track.py --video track.mp4     # also record a video (external view + camera)
+  MUJOCO_GL=osmesa python demo_track.py ...  # on a headless server
 
-El brazo solo usa la imagen de su cámara de muñeca (detector de piel) y sus propios ángulos.
-La posición real de la persona se usa solo para medir qué tan bien la sigue.
+The arm only uses the image from its wrist camera (skin detector) and its own joint angles.
+The true position of the person is used only to measure how well it tracks them.
 """
 
 import argparse
@@ -17,23 +17,23 @@ import numpy as np
 import scene
 from control import CONTROL_HZ, REST, Arm, detect_face, look_velocity
 
-DET_W, DET_H = 160, 120  # resolución para detectar (el robot real usaría algo parecido)
+DET_W, DET_H = 160, 120  # detection resolution (the real robot would use something similar)
 
 
 def person_path(t):
-    """Recorrido de la persona: (x, y, z) del cuerpo."""
-    if t < 4:  # sentada al frente
+    """Path of the person: (x, y, z) of the body."""
+    if t < 4:  # sitting in front
         return 0.95, 0.0, 0.0
-    if t < 10:  # se mueve de lado a lado
+    if t < 10:  # moves from side to side
         return 0.95, 0.28 * np.sin((t - 4) * 2 * np.pi / 6), 0.0
-    if t < 13:  # se acerca y se levanta un poco
+    if t < 13:  # comes closer and stands up a little
         k = (t - 10) / 3
         return 0.95 - 0.2 * np.sin(np.pi * k), 0.0, 0.12 * np.sin(np.pi * k)
-    if t < 14:  # se va caminando hacia un lado...
+    if t < 14:  # walks off to one side...
         return 0.95 + 0.6 * (t - 13), -0.6 * (t - 13), 0.0
-    if t < 17:  # ...y sale de la habitación
+    if t < 17:  # ...and leaves the room
         return 0.95, 0.0, -5.0
-    if t < 20:  # vuelve por el otro lado
+    if t < 20:  # comes back from the other side
         return 0.95, 0.7 - 0.7 * (t - 17) / 3, 0.0
     return 0.95, 0.0, 0.0
 
@@ -48,7 +48,7 @@ def run(seconds=23.0, video=None, volts="12V"):
     face = m.geom("face").id
     rec = Recorder(m) if video else None
 
-    state, lost_for, t_seen, nod_until = "buscar", 0.0, None, -1.0
+    state, lost_for, t_seen, nod_until = "search", 0.0, None, -1.0
     stats = dict(frames=0, seen=0, err=[], torque=[], states=[])
     n = int(seconds * CONTROL_HZ)
     for k in range(n):
@@ -61,35 +61,35 @@ def run(seconds=23.0, video=None, volts="12V"):
         hit = detect_face(img)
         if hit:
             lost_for = 0.0
-            if state == "buscar":
-                state, nod_until = "saludar", t + 1.2
+            if state == "search":
+                state, nod_until = "greet", t + 1.2
         else:
             lost_for += 1 / CONTROL_HZ
             if lost_for > 0.8:
-                state = "buscar"
+                state = "search"
 
-        if state == "buscar":
-            # Barrido: gira la base de lado a lado con la mirada al frente
+        if state == "search":
+            # Sweep: turn the base from side to side, looking straight ahead
             target = REST.copy()
             target[0] = 1.2 * np.sin(2 * np.pi * t / 6)
             dq = 2.0 * (target - d.qpos[arm.qadr])
         else:
             dq = look_velocity(arm, *(hit[:2] if hit else (0.0, 0.0)))
-            if state == "saludar":
-                # Asiente con la "cabeza" (muñeca) al encontrar a alguien
+            if state == "greet":
+                # Nod the "head" (wrist) on finding someone
                 dq[3] += 1.5 * np.cos(2 * np.pi * 1.6 * t)
                 if t > nod_until:
-                    state = "seguir"
+                    state = "track"
         arm.move(dq)
         arm.step()
 
-        # Métricas: ángulo entre la mirada y la cara real
+        # Metrics: angle between the gaze and the true face
         cpos, Rc = arm.cam_frame()
         to_face = d.geom_xpos[face] - cpos
         ang = np.degrees(np.arccos(np.clip(-Rc[:, 2] @ to_face / np.linalg.norm(to_face), -1, 1)))
         stats["frames"] += 1
         stats["seen"] += bool(hit)
-        if state == "seguir":
+        if state == "track":
             stats["err"].append(ang)
         stats["torque"].append(np.abs(d.actuator_force[arm.act]))
         stats["states"].append(state)
@@ -104,18 +104,18 @@ def run(seconds=23.0, video=None, volts="12V"):
         "track_err_median_deg": float(np.median(err)),
         "track_err_p90_deg": float(np.percentile(err, 90)),
         "max_torque": float(np.max(stats["torque"])),
-        # Torque al seguir (percentil 99): lo que el servo hace la mayor parte del tiempo
+        # Torque while tracking (99th percentile): what the servo does most of the time
         "p99_torque_follow": float(np.percentile(
-            [tq.max() for tq, s in zip(stats["torque"], stats["states"]) if s == "seguir"], 99)),
+            [tq.max() for tq, s in zip(stats["torque"], stats["states"]) if s == "track"], 99)),
         "torque": np.array(stats["torque"]),
         "states": stats["states"],
     }
 
 
 class Recorder:
-    """Video: vista externa grande + lo que ve la cámara del brazo en una esquina."""
+    """Video: large external view + what the arm camera sees in a corner."""
 
-    LABEL = {"buscar": "buscando...", "saludar": "¡hola!", "seguir": "siguiendo"}
+    LABEL = {"search": "searching...", "greet": "hello!", "track": "tracking"}
 
     def __init__(self, m):
         from PIL import ImageFont
@@ -139,7 +139,7 @@ class Recorder:
         big.paste(small, (8, 8))
         dr = ImageDraw.Draw(big)
         dr.rectangle([8, 8, 232, 176], outline=(255, 255, 255), width=2)
-        dr.text((12, 180), "cámara del brazo", fill=(255, 255, 255), font=self.font)
+        dr.text((12, 180), "arm camera", fill=(255, 255, 255), font=self.font)
         dr.text((470, 10), self.LABEL[state], fill=(255, 230, 90), font=self.font)
         dr.text((470, 36), f"{t:4.1f} s", fill=(230, 230, 230), font=self.font)
         self.frames.append(np.array(big))
@@ -148,7 +148,7 @@ class Recorder:
         import imageio.v2 as iio
 
         iio.mimsave(path, self.frames, fps=CONTROL_HZ, macro_block_size=1)
-        print("Video guardado en", path)
+        print("Video saved to", path)
 
 
 def main():
@@ -160,11 +160,11 @@ def main():
     out = run(args.seconds, args.video, args.volts)
     states = out.pop("states")
     out.pop("torque")
-    print(f"Cara visible: {out['visible_pct']:.0f} % del tiempo (la persona sale de la vista a propósito)")
-    print(f"Error de mirada al seguir: mediana {out['track_err_median_deg']:.1f}°, p90 {out['track_err_p90_deg']:.1f}°")
-    print(f"Torque: máximo {out['max_torque']:.2f} N·m, al seguir (p99) {out['p99_torque_follow']:.2f} N·m "
-          f"(límite {scene.STALL_TORQUE[args.volts]} N·m)")
-    print("Saludos:", sum(1 for i, s in enumerate(states) if s == "saludar" and (i == 0 or states[i - 1] != "saludar")))
+    print(f"Face visible: {out['visible_pct']:.0f} % of the time (the person leaves the view on purpose)")
+    print(f"Gaze error while tracking: median {out['track_err_median_deg']:.1f}°, p90 {out['track_err_p90_deg']:.1f}°")
+    print(f"Torque: max {out['max_torque']:.2f} N·m, while tracking (p99) {out['p99_torque_follow']:.2f} N·m "
+          f"(limit {scene.STALL_TORQUE[args.volts]} N·m)")
+    print("Greetings:", sum(1 for i, s in enumerate(states) if s == "greet" and (i == 0 or states[i - 1] != "greet")))
 
 
 if __name__ == "__main__":

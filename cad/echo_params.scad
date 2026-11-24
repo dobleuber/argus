@@ -1,4 +1,4 @@
-// Imprime las medidas que usa la simulación (python lee esta salida).
+// Prints the dimensions the simulation uses (Python reads this output).
 include <mounts.scad>
 PART = "none";
 echo(str("P:HINGE=", HINGE));

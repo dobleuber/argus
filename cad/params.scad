@@ -1,59 +1,59 @@
-// Medidas del sistema de montaje del brazo SO-101 (mm). Única fuente: cambiar aquí y volver a
-// exportar (./export.sh). La simulación lee las del morral con echo_params.scad.
+// Dimensions of the SO-101 arm mount system (mm). Single source: change them here and export
+// again (./export.sh). The simulation reads the backpack ones through echo_params.scad.
 
 $fn = 48;
-CL = 0.4;            // holgura de ajuste (bajar a 0.3 si la impresora es precisa)
-WALL = 4;            // paredes estructurales
+CL = 0.4;            // fit clearance (lower to 0.3 if the printer is accurate)
+WALL = 4;            // structural walls
 
-// ---------------------------------------------------------------- base del SO-101 (medida del STL)
-// Pestaña de la base: 87 x 111 mm, 16 mm de alto; la torre encima ocupa x -22.4..19.4, y ±22.4.
-// Coordenadas respecto del origen del cuerpo "base" del modelo (eje x hacia adelante del brazo).
+// ---------------------------------------------------------------- SO-101 base (measured from the STL)
+// Base flange: 87 x 111 mm, 16 mm tall; the tower on top spans x -22.4..19.4, y ±22.4.
+// Coordinates relative to the origin of the model's "base" body (x axis towards the front of the arm).
 BASE_X0 = -22.4;  BASE_L = 87.0;  BASE_W = 111.0;  BASE_H = 16.0;
-BASE_Z0 = -2.4;   // la cara de abajo de la base está 2.4 mm bajo su origen
+BASE_Z0 = -2.4;   // the bottom face of the base is 2.4 mm below its origin
 TOWER_X1 = 19.4;  TOWER_HW = 22.4;
 
-// ---------------------------------------------------------------- bandeja (abraza la pestaña)
-FLOOR = 4;          // piso bajo la base
-TRAY_WALL_H = 10;   // altura de las paredes laterales (la pestaña mide 16)
-BAR_W = 20;  BAR_T = 8;  BAR_Y = 39;   // barras de apriete sobre las alas (y = ±39)
-BAR_EAR = 10;       // las barras sobresalen y se atornillan fuera de la pestaña
-PAD = 1.0;          // goma o TPU bajo las barras
+// ---------------------------------------------------------------- cradle (hugs the flange)
+FLOOR = 4;          // floor under the base
+TRAY_WALL_H = 10;   // height of the side walls (the flange is 16)
+BAR_W = 20;  BAR_T = 8;  BAR_Y = 39;   // clamp bars over the wings (y = ±39)
+BAR_EAR = 10;       // the bars stick out and are bolted outside the flange
+PAD = 1.0;          // rubber or TPU under the bars
 
-// ---------------------------------------------------------------- riel cola de milano (tipo Arca, 38 mm)
-// Perfil (de abajo hacia arriba): 38 mm de ancho los primeros RAIL_FLAT mm, luego se angosta a
-// 45° hasta RAIL_W - 2*RAIL_BEVEL. Las mordazas del receptor montan sobre esos biseles y tiran el
-// riel hacia abajo. Imprimir primero coupon.scad y probarlo con la pinza que se vaya a usar.
+// ---------------------------------------------------------------- dovetail rail (Arca-type, 38 mm)
+// Profile (bottom to top): 38 mm wide for the first RAIL_FLAT mm, then it narrows at 45° to
+// RAIL_W - 2*RAIL_BEVEL. The receiver jaws ride on those bevels and pull the rail down.
+// Print the coupons first (PART="rail_coupon" / "receiver_coupon") and test them with the clamp you will use.
 RAIL_W = 38;  RAIL_FLAT = 6;  RAIL_BEVEL = 3;  RAIL_L = 100;
 RAIL_H = RAIL_FLAT + RAIL_BEVEL;
-PIN_GROOVE_W = 6.2;  PIN_GROOVE_D = 2;   // ranura para el tornillo de seguridad M4
+PIN_GROOVE_W = 6.2;  PIN_GROOVE_D = 2;   // groove for the M4 safety screw
 
-// ---------------------------------------------------------------- receptor (mesa y morral)
-RX_L = 70;          // largo de agarre a lo largo del riel
-RX_SIDE = 16;       // ancho de cada mordaza
-RX_BASE = 8;        // espesor bajo el riel
-JAW_TRAVEL = 4;     // recorrido de la mordaza móvil
+// ---------------------------------------------------------------- receiver (desk and backpack)
+RX_L = 70;          // clamping length along the rail
+RX_SIDE = 16;       // width of each jaw
+RX_BASE = 8;        // thickness under the rail
+JAW_TRAVEL = 4;     // travel of the moving jaw
 
-// ---------------------------------------------------------------- tornillería
+// ---------------------------------------------------------------- hardware
 M3_INSERT = 4.0;  M5 = 5.4;  M5_HEAD = 9.5;  M5_NUT = 8.0 / cos(30) + 0.4;  M5_NUT_H = 4.2;
 M6 = 6.4;  M6_NUT = 10.0 / cos(30) + 0.4;  M6_NUT_H = 5.2;  M4 = 4.4;  M8 = 8.4;
 
-// ---------------------------------------------------------------- morral (marco: hombros del usuario)
-// x adelante, y izquierda, z arriba; origen = centro de los hombros. El brazo va en el hombro derecho.
-ARM_BASE = [-100, -260, 0];      // origen de la base del brazo (igual que MOUNT en sim/backpack.py)
-SHEET = [3, 250, 380];           // placa de HDPE 3 mm (entra en el bolsillo de la laptop)
-SHEET_X = -135;                  // cara delantera de la placa (hacia la espalda)
-SHEET_TOP = -40;                 // borde de arriba de la placa
-TUBE = 20;  TUBE_T = 1.5;        // tubo cuadrado de aluminio 20 x 20 x 1.5
-FOOT_AT = [-154, -100, -60];     // donde nace el tubo (pie atornillado arriba a la derecha de la placa)
-HEAD_AT = [-154, -225, -45];     // donde termina el tubo (cabeza con bisagra)
-HINGE_BEHIND = 30;               // la bisagra está detrás del riel: el brazo se dobla hacia atrás
-FOLD_TORQUE = 7;                 // N·m: con más que esto, los imanes ceden y el brazo se dobla
-MAGNET_D = 10;  MAGNET_H = 5;    // imanes de neodimio 10 x 5 mm (4 pares)
-// Apoyo de la cabeza fija (mejorado tras la prueba de diseño generativo, ../generative/): placa más
-// delgada + nervios debajo + pared que los une con el encastre del tubo
-SUPPORT_T = 6;                   // espesor del apoyo (antes 10)
-MAG_BOSS_D = 16;  MAG_BOSS_H = 9;   // refuerzo redondo alrededor de cada imán
-RIB_T = 4;  RIB_DEPTH = 28;      // nervios bajo el apoyo: espesor y alto en la raíz (28: no sale de la caja original)
-RIB_Y = [-33, 0, 33];            // posición de los nervios respecto del centro del brazo
-BOX_IN = [45, 140, 95];          // caja de electrónica (adentro): Orange Pi 5 Pro + batería 3S + buck
-BOX_Z = -330;                    // centro de la caja (abajo en la placa)
+// ---------------------------------------------------------------- backpack (frame: wearer's shoulders)
+// x forward, y left, z up; origin = centre of the shoulders. The arm sits on the right shoulder.
+ARM_BASE = [-100, -260, 0];      // origin of the arm base (same as MOUNT in sim/backpack.py)
+SHEET = [3, 250, 380];           // 3 mm HDPE plate (fits in the laptop pocket)
+SHEET_X = -135;                  // front face of the plate (towards the back)
+SHEET_TOP = -40;                 // top edge of the plate
+TUBE = 20;  TUBE_T = 1.5;        // 20 x 20 x 1.5 square aluminium tube
+FOOT_AT = [-154, -100, -60];     // where the tube starts (foot bolted to the top right of the plate)
+HEAD_AT = [-154, -225, -45];     // where the tube ends (head with hinge)
+HINGE_BEHIND = 30;               // the hinge is behind the rail: the arm folds backwards
+FOLD_TORQUE = 7;                 // N·m: beyond this, the magnets give way and the arm folds
+MAGNET_D = 10;  MAGNET_H = 5;    // 10 x 5 mm neodymium magnets (4 pairs)
+// Support of the fixed head (improved after the generative-design trial, ../generative/): thinner
+// plate + ribs underneath + a wall that ties them to the tube socket
+SUPPORT_T = 6;                   // support thickness (was 10)
+MAG_BOSS_D = 16;  MAG_BOSS_H = 9;   // round boss around each magnet
+RIB_T = 4;  RIB_DEPTH = 28;      // ribs under the support: thickness and height at the root (28: stays inside the original bounding box)
+RIB_Y = [-33, 0, 33];            // position of the ribs relative to the centre of the arm
+BOX_IN = [45, 140, 95];          // electronics box (inside): Orange Pi 5 Pro + 3S battery + buck
+BOX_Z = -330;                    // centre of the box (low on the plate)

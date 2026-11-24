@@ -1,11 +1,11 @@
 #!/bin/sh
-# Exporta cada pieza a stl/ (STL binario) y la placa de la espalda a DXF.
+# Exports each part to stl/ (binary STL) and the back plate to DXF.
 set -e
 cd "$(dirname "$0")"
 mkdir -p stl
-for p in bandeja barra receptor mordaza perilla base_mesa pie_mastil cabeza_fija cabeza_movil caja tapa \
-         probeta_riel probeta_receptor; do
+for p in cradle clamp_bar receiver jaw knob desk_base mast_foot head_fixed head_moving box lid \
+         rail_coupon receiver_coupon; do
   openscad -q --export-format binstl -D "PART=\"$p\"" -o "stl/$p.stl" mounts.scad
   echo "stl/$p.stl"
 done
-openscad -q -D 'PART="placa_espalda"' -o placa_espalda.dxf mounts.scad && echo placa_espalda.dxf
+openscad -q -D 'PART="back_plate"' -o back_plate.dxf mounts.scad && echo back_plate.dxf

@@ -1,7 +1,7 @@
-"""Control del brazo: cinemática inversa, seguimiento con la cámara y detector de caras.
+"""Arm control: inverse kinematics, camera tracking and face detector.
 
-Todo lo que usa el seguimiento lo tendría el robot real: la imagen de la cámara de muñeca y los
-ángulos de los servos. No usa la posición "verdadera" de la persona.
+Everything the tracking uses, the real robot would have too: the wrist camera image and the servo
+angles. It does not use the "true" position of the person.
 """
 
 import mujoco
@@ -10,13 +10,13 @@ import numpy as np
 from scene import SKIN, arm_ids
 
 CONTROL_HZ = 25
-MAX_SPEED = 2.0  # rad/s por articulación (el STS3215 llega a ~4.7 sin carga)
-MAX_ACCEL = 10.0  # rad/s² (arranques y frenadas suaves: menos golpes de torque)
-REST = np.array([0.0, -0.9, 0.9, -0.7, -1.57])  # postura cómoda (cámara derecha, mirando adelante)
+MAX_SPEED = 2.0  # rad/s per joint (the STS3215 reaches ~4.7 unloaded)
+MAX_ACCEL = 10.0  # rad/s² (smooth starts and stops: fewer torque spikes)
+REST = np.array([0.0, -0.9, 0.9, -0.7, -1.57])  # comfortable posture (camera upright, looking forward)
 
 
 class Arm:
-    """Lleva los objetivos de los servos y los mueve suavemente (a velocidad limitada)."""
+    """Keeps the servo targets and moves them smoothly (at limited speed)."""
 
     def __init__(self, model, data):
         self.m, self.d = model, data
@@ -38,7 +38,7 @@ class Arm:
         mujoco.mj_forward(self.m, self.d)
 
     def move(self, dq):
-        """Aplica una velocidad (rad/s) por un paso de control."""
+        """Apply a velocity (rad/s) for one control step."""
         dq = np.clip(dq, -MAX_SPEED, MAX_SPEED)
         dv = MAX_ACCEL / CONTROL_HZ
         dq = np.clip(dq, self.dq - dv, self.dq + dv)
@@ -46,7 +46,7 @@ class Arm:
         self.q_cmd = np.clip(self.q_cmd + dq / CONTROL_HZ, self.lo + 0.02, self.hi - 0.02)
 
     def step(self, on_substep=None):
-        # Interpola el objetivo dentro del paso de control (como el perfil de velocidad del servo)
+        # Interpolate the target within the control step (like the servo's velocity profile)
         start = self.d.ctrl[self.act].copy()
         self.d.ctrl[self.gact] = self.grip_cmd
         for i in range(self.substeps):
@@ -55,7 +55,7 @@ class Arm:
             if on_substep:
                 on_substep()
 
-    # ------------------------------------------------------------- cinemática
+    # ------------------------------------------------------------- kinematics
     def jac(self, body=None, point=None):
         jp = np.zeros((3, self.m.nv))
         jr = np.zeros((3, self.m.nv))
@@ -73,7 +73,7 @@ class Arm:
 
 
 def dls(J, err, lam=0.05):
-    """Mínimos cuadrados amortiguados: dq tal que J dq ≈ err."""
+    """Damped least squares: dq such that J dq ≈ err."""
     return J.T @ np.linalg.solve(J @ J.T + lam**2 * np.eye(J.shape[0]), err)
 
 
@@ -83,14 +83,14 @@ def nullspace(J, lam=0.05):
 
 
 def reach_velocity(arm, target, approach=None, gain=4.0, posture_gain=0.5):
-    """Velocidad articular para llevar la pinza a `target` (y su eje x hacia `approach`)."""
+    """Joint velocity that brings the gripper to `target` (and its x axis towards `approach`)."""
     p, R = arm.site_pose()
     jp, jr = arm.jac()
     err = gain * (np.asarray(target) - p)
     J = jp
     if approach is not None:
         a = R[:, 0]
-        rot_err = np.cross(a, approach / np.linalg.norm(approach))  # gira el eje x hacia approach
+        rot_err = np.cross(a, approach / np.linalg.norm(approach))  # turn the x axis towards approach
         err = np.concatenate([err, gain * rot_err])
         J = np.vstack([jp, jr])
     dq = dls(J, err)
@@ -99,11 +99,11 @@ def reach_velocity(arm, target, approach=None, gain=4.0, posture_gain=0.5):
     return dq, float(np.linalg.norm(np.asarray(target) - p))
 
 
-# ------------------------------------------------------------------ visión
+# ------------------------------------------------------------------ vision
 def detect_face(img):
-    """Busca piel en la imagen (como un detector de caras simple). Devuelve (u, v, tamaño) o None.
+    """Look for skin in the image (like a simple face detector). Returns (u, v, size) or None.
 
-    u, v en [-1, 1] (derecha y abajo positivos); tamaño = fracción de la imagen ocupada.
+    u, v in [-1, 1] (right and down positive); size = fraction of the image covered.
     """
     f = img.astype(np.float32) / 255.0
     r, g, b = f[..., 0], f[..., 1], f[..., 2]
@@ -118,7 +118,7 @@ def detect_face(img):
 
 
 def ray_world(arm, u, v, fovy_deg=61.0, aspect=4 / 3):
-    """Dirección (marco mundo) del punto visto en (u, v) de la imagen."""
+    """Direction (world frame) of the point seen at (u, v) in the image."""
     _, Rc = arm.cam_frame()
     th = np.tan(np.radians(fovy_deg) / 2)
     r = np.array([u * th * aspect, -v * th, -1.0])
@@ -126,10 +126,10 @@ def ray_world(arm, u, v, fovy_deg=61.0, aspect=4 / 3):
 
 
 class TargetMotion:
-    """Estima la velocidad angular del objetivo visto (rad/s, mundo) con detecciones seguidas.
+    """Estimate the angular velocity of the seen target (rad/s, world) from consecutive detections.
 
-    Sirve para adelantarse cuando el objetivo (o uno mismo) se mueve: sin esto, el seguimiento
-    va siempre un poco atrasado.
+    Used to lead the target when it (or oneself) moves: without this, tracking always lags a
+    little behind.
     """
 
     def __init__(self, dt, smooth=0.3):
@@ -149,25 +149,25 @@ class TargetMotion:
 
 def look_velocity(arm, u, v, gain=2.5, posture_gain=0.6, fovy_deg=61.0, aspect=4 / 3, base_omega=None,
                   target_omega=None):
-    """Velocidad articular para centrar en la imagen un punto visto en (u, v), con la cámara derecha.
+    """Joint velocity that centres a point seen at (u, v) in the image, with the camera upright.
 
-    Gira la cámara alrededor de sus ejes (servo visual por imagen) y mantiene el horizonte
-    nivelado (sin roll). La postura sobrante vuelve a REST. Si la base se mueve (brazo en el
-    morral), base_omega = velocidad angular de la base medida por la IMU (rad/s, marco mundo).
+    Rotates the camera about its own axes (image-based visual servoing) and keeps the horizon
+    level (no roll). The leftover posture returns to REST. If the base moves (arm on the
+    backpack), base_omega = angular velocity of the base measured by the IMU (rad/s, world frame).
     """
-    _, Rc = arm.cam_frame()  # columnas: x derecha, y arriba, z hacia atrás (MuJoCo)
+    _, Rc = arm.cam_frame()  # columns: x right, y up, z backwards (MuJoCo)
     half_v = np.radians(fovy_deg) / 2
     half_h = np.arctan(np.tan(half_v) * aspect)
-    # Ángulos al objetivo en el marco de la cámara
-    yaw_err = -np.arctan(u * np.tan(half_h))  # objetivo a la derecha -> girar a la derecha (-y)
-    pitch_err = -np.arctan(v * np.tan(half_v))  # objetivo abajo -> bajar la mirada (-x)
-    roll_err = -Rc[2, 0]  # eje x de la cámara debería quedar horizontal
+    # Angles to the target in the camera frame
+    yaw_err = -np.arctan(u * np.tan(half_h))  # target to the right -> turn right (-y)
+    pitch_err = -np.arctan(v * np.tan(half_v))  # target below -> look down (-x)
+    roll_err = -Rc[2, 0]  # camera x axis should stay horizontal
     w_cam = gain * np.array([pitch_err, yaw_err, roll_err])
     w = Rc @ w_cam
     if target_omega is not None:
-        w = w + target_omega  # adelantarse al movimiento del objetivo
+        w = w + target_omega  # lead the target's motion
     if base_omega is not None:
-        # La base gira (IMU): los servos compensan ese giro para que la cámara no se sacuda
+        # The base rotates (IMU): the servos cancel that rotation so the camera does not shake
         w = w - base_omega
     _, jr = arm.jac()
     dq = dls(jr, w)
