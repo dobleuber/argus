@@ -148,7 +148,7 @@ altura del hombro (1.62 m), la bisagra no alcanza: el brazo doblado sigue en el 
 
 ```bash
 cd sim
-pip install mujoco numpy pillow imageio imageio-ffmpeg pytest
+pip install -r ../requirements.txt
 python demo_track.py                       # buscar / saludar / seguir (imprime resultados)
 python demo_track.py --video seguir.mp4    # con video
 python demo_hold.py --mass 0.2 --volts 7.4V --video sostener.mp4

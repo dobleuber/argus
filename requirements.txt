@@ -1,0 +1,6 @@
+mujoco==3.16.0
+numpy
+pillow
+imageio
+imageio-ffmpeg
+pytest
