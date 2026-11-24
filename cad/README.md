@@ -64,7 +64,7 @@ any backpack.
 - **Hinge that folds backwards** if the arm gets snagged: the magnets hold it with ~7 N·m (normal
   walking asks ~1 N·m of it) and give way under a hit. It never folds towards the head: forwards,
   the support stops it. In the simulation, against a branch at 1.74 m, the arm takes a **6 times
-  smaller hit** (39 N against 248 N) and the shoulder **less than half** (106 N against 262 N)
+  smaller hit** (39 N against 250 N) and the shoulder **less than half** (106 N against 262 N)
   compared with a rigid mount. It is closed again by hand.
 - **Hall sensor on the hinge** (uses the same magnets): if it folds, the robot stops.
 - **Stop button** on the strap, which cuts the servo power (not just the software).

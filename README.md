@@ -64,14 +64,14 @@ head), at shoulder height. Further in, the arm ends up less than 10 cm from the 
 
 **Safety (always on):** the base does not turn towards the head, and if any part of the arm comes
 within 10 cm of it, the arm goes back to the rest posture. In the test, the closest it came was
-9.8 cm.
+9.7 cm.
 
 ### Looking at people while you walk
 
 | Gaze error (median / p90) | No prediction | With prediction |
 |---|---|---|
 | No IMU | 9.3° / 22.6° | 3.5° / 14.5° |
-| **With IMU** | 10.4° / 21.4° | **2.8° / 8.0°** |
+| **With IMU** | 10.4° / 21.4° | **2.8° / 7.9°** |
 
 - **IMU on the mount** (BNO055): measures the sway and the servos compensate for it.
 - **Prediction:** from two consecutive detections it estimates where the person is moving in the
@@ -123,7 +123,7 @@ with no extra supports when printing (details in [cad/README.md](cad/README.md))
 
 | | With hinge | Rigid mount |
 |---|---|---|
-| Hit on the arm | **39 N** | 248 N |
+| Hit on the arm | **39 N** | 250 N |
 | Load on the wearer's shoulder | **106 N, 24 N·m** | 262 N, 58 N·m |
 | The arm | folds 92° backwards and stays there | the branch bends it, by force |
 
